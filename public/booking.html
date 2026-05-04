@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Онлайн запись</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #fffde7; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: #fff; border-radius: 24px; padding: 36px; max-width: 420px; width: 100%; box-shadow: 0 8px 40px rgba(200,170,80,0.2); border: 2px solid #f9d342; }
+    h1 { font-family: 'Dancing Script', cursive; font-size: 32px; color: #7c5c2e; text-align: center; margin-bottom: 8px; }
+    p.sub { text-align: center; color: #a07840; margin-bottom: 24px; font-size: 14px; }
+    label { font-size: 13px; color: #a07840; font-weight: 600; display: block; margin-bottom: 4px; margin-top: 14px; }
+    input, select { width: 100%; border: 1.5px solid #f9d342; border-radius: 10px; padding: 10px 14px; font-family: 'Nunito', sans-serif; font-size: 15px; outline: none; background: #fffde7; }
+    .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+    .slot-btn { background: #fff9c4; border: 1.5px solid #f9d342; border-radius: 10px; padding: 8px 4px; font-size: 14px; font-weight: 600; color: #7c5c2e; cursor: pointer; text-align: center; transition: all 0.15s; }
+    .slot-btn:hover, .slot-btn.selected { background: #f9d342; }
+    .btn-submit { width: 100%; margin-top: 20px; background: #f9d342; border: none; border-radius: 14px; padding: 14px; font-family: 'Dancing Script', cursive; font-size: 22px; color: #7c5c2e; cursor: pointer; transition: all 0.2s; }
+    .btn-submit:hover { background: #f0b429; transform: translateY(-1px); }
+    .success { text-align: center; padding: 30px 0; }
+    .success h2 { font-family: 'Dancing Script', cursive; font-size: 28px; color: #7c5c2e; margin-bottom: 10px; }
+    .no-slots { text-align: center; color: #a07840; padding: 16px 0; font-size: 14px; }
+  </style>
+</head>
+<body>
+<div class="card" id="formCard">
+  <h1>✨ Запись</h1>
+  <p class="sub">Выберите удобную дату и время</p>
+
+  <label>Дата</label>
+  <input type="date" id="bookDate" min="">
+
+  <label>Свободное время</label>
+  <div class="slots" id="slotsContainer"><div class="no-slots">Выберите дату</div></div>
+
+  <label>Ваше имя</label>
+  <input type="text" id="bookName" placeholder="Имя">
+
+  <label>Телефон</label>
+  <input type="tel" id="bookPhone" placeholder="+7...">
+
+  <button class="btn-submit" id="btnBook">Записаться</button>
+</div>
+
+<div class="success" id="successCard" style="display:none">
+  <h2>✅ Вы записаны!</h2>
+  <p>Ждём вас в выбранное время. До встречи!</p>
+</div>
+
+<script>
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bookDate').min = today;
+  document.getElementById('bookDate').value = today;
+
+  let selectedTime = null;
+
+  document.getElementById('bookDate').addEventListener('change', loadSlots);
+
+  async function loadSlots() {
+    const date = document.getElementById('bookDate').value;
+    selectedTime = null;
+    const slots = await fetch(`/api/available-slots?date=${date}`).then(r => r.json());
+    const container = document.getElementById('slotsContainer');
+    if (!slots.length) {
+      container.innerHTML = '<div class="no-slots">На этот день нет свободного времени</div>';
+      return;
+    }
+    container.innerHTML = '';
+    slots.forEach(t => {
+      const btn = document.createElement('div');
+      btn.className = 'slot-btn';
+      btn.textContent = t;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedTime = t;
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  document.getElementById('btnBook').addEventListener('click', async () => {
+    const date = document.getElementById('bookDate').value;
+    const name = document.getElementById('bookName').value.trim();
+    const phone = document.getElementById('bookPhone').value.trim();
+    if (!selectedTime) { alert('Выберите время'); return; }
+    if (!name) { alert('Введите имя'); return; }
+
+    await fetch('/api/book', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, time: selectedTime, client_name: name, client_phone: phone })
+    });
+
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+  });
+
+  loadSlots();
+</script>
+</body>
+</html>

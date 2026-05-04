@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мой Салон</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Боковое меню -->
+  <nav class="sidebar">
+    <div class="logo">✨ Мой Салон</div>
+    <button class="nav-btn active" data-page="schedule">📅 Расписание</button>
+    <button class="nav-btn" data-page="clients">👤 Клиенты</button>
+    <button class="nav-btn" data-page="services">💅 Услуги</button>
+    <button class="nav-btn" data-page="todos">✅ Мои дела</button>
+    <button class="nav-btn" data-page="settings">⚙️ Настройки</button>
+  </nav>
+
+  <!-- Основной контент -->
+  <main class="content">
+
+    <!-- РАСПИСАНИЕ -->
+    <section id="page-schedule" class="page active">
+      <div class="page-header">
+        <h1>Расписание</h1>
+        <div class="header-actions">
+          <button class="btn-week" id="prevWeek">‹</button>
+          <span id="weekLabel"></span>
+          <button class="btn-week" id="nextWeek">›</button>
+          <button class="btn-primary" id="btnAddAppointment">+ Запись</button>
+          <button class="btn-secondary" id="btnBookingLink">🔗 Ссылка клиенту</button>
+        </div>
+      </div>
+      <div class="schedule-grid" id="scheduleGrid"></div>
+    </section>
+
+    <!-- КЛИЕНТЫ -->
+    <section id="page-clients" class="page">
+      <div class="page-header">
+        <h1>Клиенты</h1>
+        <div class="header-actions">
+          <input type="text" id="clientSearch" placeholder="Поиск..." class="search-input">
+          <button class="btn-primary" id="btnAddClient">+ Клиент</button>
+        </div>
+      </div>
+      <div id="clientsList" class="clients-list"></div>
+    </section>
+
+    <!-- УСЛУГИ -->
+    <section id="page-services" class="page">
+      <div class="page-header">
+        <h1>Услуги</h1>
+        <button class="btn-primary" id="btnAddService">+ Услуга</button>
+      </div>
+      <div id="servicesList" class="services-list"></div>
+    </section>
+
+    <!-- ДЕЛА -->
+    <section id="page-todos" class="page">
+      <div class="page-header">
+        <h1>Мои дела</h1>
+        <input type="date" id="todoDate" class="date-input">
+      </div>
+      <div class="todo-add">
+        <input type="text" id="newTodoText" placeholder="Новое дело..." class="todo-input">
+        <button class="btn-primary" id="btnAddTodo">Добавить</button>
+      </div>
+      <div id="todosList" class="todos-list"></div>
+    </section>
+
+    <!-- НАСТРОЙКИ -->
+    <section id="page-settings" class="page">
+      <div class="page-header"><h1>Настройки</h1></div>
+      <div class="settings-card">
+        <h3>Telegram бот</h3>
+        <label>Токен бота</label>
+        <input type="text" id="botToken" placeholder="Вставьте токен от @BotFather" class="settings-input">
+        <label>Шаблон напоминания</label>
+        <textarea id="reminderTemplate" class="settings-textarea">Здравствуйте, [имя]! Напоминаю о вашей записи завтра в [время] на [услуга]. Жду вас!</textarea>
+        <p class="hint">Переменные: [имя] [время] [услуга]</p>
+        <button class="btn-primary" id="btnSaveSettings">Сохранить</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- МОДАЛЬНЫЕ ОКНА -->
+
+<!-- Запись -->
+<div class="modal" id="modalAppointment">
+  <div class="modal-box">
+    <h2>Запись клиента</h2>
+    <input type="hidden" id="apptId">
+
+    <label>Клиент</label>
+    <div class="client-select-row">
+      <select id="apptClientId" class="modal-select">
+        <option value="">— новый клиент —</option>
+      </select>
+    </div>
+
+    <div id="newClientFields">
+      <label>Имя</label>
+      <input type="text" id="apptClientName" class="modal-input" placeholder="Имя клиента">
+      <label>Телефон</label>
+      <input type="text" id="apptClientPhone" class="modal-input" placeholder="+7...">
+    </div>
+
+    <label>Дата</label>
+    <input type="date" id="apptDate" class="modal-input">
+    <label>Время</label>
+    <input type="time" id="apptTime" class="modal-input" min="09:00" max="20:00">
+
+    <label>Услуги</label>
+    <div id="apptServices" class="services-checkboxes"></div>
+
+    <div class="total-row">
+      <span>Итого:</span>
+      <span id="apptTotal" class="total-sum">0 ₽</span>
+    </div>
+
+    <label>Заметки</label>
+    <textarea id="apptNotes" class="modal-textarea" placeholder="Заметки..."></textarea>
+
+    <div class="modal-actions">
+      <button class="btn-primary" id="btnSaveAppt">Сохранить</button>
+      <button class="btn-reminder" id="btnCopyReminder">📋 Скопировать напоминание</button>
+      <button class="btn-telegram" id="btnSendTelegram">✈️ Telegram</button>
+      <button class="btn-cancel" id="btnCancelAppt">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Клиент -->
+<div class="modal" id="modalClient">
+  <div class="modal-box">
+    <h2>Клиент</h2>
+    <input type="hidden" id="clientId">
+    <label>Имя</label>
+    <input type="text" id="clientName" class="modal-input" placeholder="Имя">
+    <label>Телефон</label>
+    <input type="text" id="clientPhone" class="modal-input" placeholder="+7...">
+    <label>Telegram</label>
+    <input type="text" id="clientTelegram" class="modal-input" placeholder="@username">
+    <label>Заметки</label>
+    <textarea id="clientNotes" class="modal-textarea" placeholder="Заметки..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btnSaveClient">Сохранить</button>
+      <button class="btn-cancel" id="btnCancelClient">Отмена</button>
+    </div>
+    <div id="clientHistory" class="client-history"></div>
+  </div>
+</div>
+
+<!-- Услуга -->
+<div class="modal" id="modalService">
+  <div class="modal-box">
+    <h2>Услуга</h2>
+    <input type="hidden" id="serviceId">
+    <label>Название</label>
+    <input type="text" id="serviceName" class="modal-input" placeholder="Название услуги">
+    <label>Цена (₽)</label>
+    <input type="number" id="servicePrice" class="modal-input" placeholder="0">
+    <div class="modal-actions">
+      <button class="btn-primary" id="btnSaveService">Сохранить</button>
+      <button class="btn-cancel" id="btnCancelService">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ссылка -->
+<div class="modal" id="modalLink">
+  <div class="modal-box">
+    <h2>🔗 Ссылка для клиента</h2>
+    <p>Отправьте эту ссылку клиенту — он сам выберет удобное время:</p>
+    <div class="link-box" id="bookingLink"></div>
+    <button class="btn-primary" id="btnCopyLink">📋 Скопировать</button>
+    <button class="btn-cancel" id="btnCloseLink">Закрыть</button>
+  </div>
+</div>
+
+<!-- Уведомление -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
