@@ -63,10 +63,12 @@ const MONTHS_RU = ['янв','фев','мар','апр','май','июн','июл
 document.getElementById('prevWeek').addEventListener('click', () => {
   currentWeekStart = addDays(currentWeekStart, -7);
   renderSchedule();
+  renderWeekTodos();
 });
 document.getElementById('nextWeek').addEventListener('click', () => {
   currentWeekStart = addDays(currentWeekStart, 7);
   renderSchedule();
+  renderWeekTodos();
 });
 
 async function renderSchedule() {
@@ -134,6 +136,72 @@ async function renderSchedule() {
 
 function safeParseServices(s) {
   try { return JSON.parse(s) || []; } catch { return []; }
+}
+
+// ── ДЕЛА НА НЕДЕЛЮ (на главной) ───────────────────────────────────────────
+async function renderWeekTodos() {
+  const grid = document.getElementById('weekTodosGrid');
+  grid.innerHTML = '';
+  const today = formatDate(new Date());
+
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(currentWeekStart, i);
+    const dateStr = formatDate(d);
+    const isToday = dateStr === today;
+
+    const todos = await api(`/api/todos?date=${dateStr}`);
+
+    const col = document.createElement('div');
+    col.className = 'week-todos-col' + (isToday ? ' today-col' : '');
+
+    const dayLabel = document.createElement('div');
+    dayLabel.className = 'week-todos-day';
+    dayLabel.textContent = `${DAYS_RU[i]} ${d.getDate()}`;
+    col.appendChild(dayLabel);
+
+    todos.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'week-todo-item';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!t.done;
+      cb.addEventListener('change', async () => {
+        await api(`/api/todos/${t.id}`, 'PUT', { done: cb.checked, text: t.text });
+        span.classList.toggle('done', cb.checked);
+      });
+      const span = document.createElement('span');
+      span.textContent = t.text;
+      if (t.done) span.classList.add('done');
+      item.appendChild(cb);
+      item.appendChild(span);
+      col.appendChild(item);
+    });
+
+    // Поле добавить дело
+    const addRow = document.createElement('div');
+    addRow.className = 'week-todo-add';
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'week-todo-input';
+    inp.placeholder = '+ дело';
+    const btn = document.createElement('button');
+    btn.className = 'week-todo-btn';
+    btn.textContent = '+';
+    const addTodoForDay = async () => {
+      const text = inp.value.trim();
+      if (!text) return;
+      await api('/api/todos', 'POST', { text, date: dateStr });
+      inp.value = '';
+      renderWeekTodos();
+    };
+    btn.addEventListener('click', addTodoForDay);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') addTodoForDay(); });
+    addRow.appendChild(inp);
+    addRow.appendChild(btn);
+    col.appendChild(addRow);
+
+    grid.appendChild(col);
+  }
 }
 
 // ── ЗАПИСЬ ────────────────────────────────────────────────────────────────
@@ -255,6 +323,7 @@ async function saveAppointment() {
 
   closeModal('modalAppointment');
   renderSchedule();
+  renderWeekTodos();
   toast('Запись сохранена!');
 }
 
@@ -502,3 +571,4 @@ document.getElementById('btnSaveSettings').addEventListener('click', () => {
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────
 renderSchedule();
+renderWeekTodos();

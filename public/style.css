@@ -195,6 +195,83 @@ h1, h2, h3, .logo, .nav-btn, .btn-primary, .btn-secondary {
   outline: none;
 }
 
+/* ── ДЕЛА НА НЕДЕЛЮ (на главной) ── */
+.week-todos-header {
+  margin: 24px 0 10px;
+}
+.week-todos-header h2 {
+  font-size: 26px;
+  color: var(--brown);
+}
+.week-todos-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.week-todos-col {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 10px;
+  border: 1.5px solid #f0e8c0;
+  box-shadow: var(--shadow);
+  min-height: 80px;
+}
+.week-todos-col.today-col {
+  border-color: var(--yellow-accent);
+  background: var(--yellow-mid);
+}
+.week-todos-day {
+  font-family: 'Dancing Script', cursive;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--brown);
+  margin-bottom: 6px;
+  text-align: center;
+  border-bottom: 1px solid #f0e8c0;
+  padding-bottom: 4px;
+}
+.week-todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 3px 0;
+  font-size: 12px;
+  color: var(--text);
+}
+.week-todo-item input[type=checkbox] {
+  margin-top: 2px;
+  accent-color: var(--yellow-dark);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.week-todo-item span.done { text-decoration: line-through; color: #bbb; }
+.week-todo-add {
+  display: flex;
+  margin-top: 6px;
+  gap: 4px;
+}
+.week-todo-input {
+  flex: 1;
+  border: 1px solid var(--yellow-accent);
+  border-radius: 7px;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+  min-width: 0;
+}
+.week-todo-btn {
+  background: var(--yellow-accent);
+  border: none;
+  border-radius: 7px;
+  padding: 3px 7px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--brown);
+  font-weight: 700;
+}
+
 .clients-list { display: flex; flex-direction: column; gap: 10px; }
 .client-card {
   background: var(--white);
